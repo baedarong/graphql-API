@@ -1,34 +1,72 @@
-import { ApolloServer, gql } from "apollo-server";
+import { ApolloServer } from "apollo-server";
+import { tweets, users } from "./database.js";
+import { typeDefs } from "./types.js";
+import fetch from "node-fetch";
 
-// shape of the data
-// schema definion language
-const typeDefs = gql`
-  type User {
-    id: ID!
-    userName: String!
-    firstName: String
-    lastName: String
-  }
-  type Tweet {
-    id: ID!
-    text: String!
-    author: User!
-  }
-  type Query {
-    allTweets: [Tweet!]!
-    tweet(id: ID!): Tweet
-  }
-  type Mutation {
-    postTweet(text: String!, userID: ID!): Tweet!
-    deleteTweet(tweetId: ID!): Boolean!
-  }
-`;
+// [JS Logic] return data from database
+const resolvers = {
+  Query: {
+    allTweets() {
+      return tweets;
+    },
+    tweet(root, { id }) {
+      return tweets.find((tweet) => tweet.id === id);
+    },
+    allUsers() {
+      return users;
+    },
+    async allMovies() {
+      const response = await fetch(
+        "https://yts.torrentbay.to/api/v2/list_movies.json"
+      );
+      const json = await response.json();
+      return json.data.movies;
+    },
+    async movie(root, { id }) {
+      const response = await fetch(
+        `https://yts.mx/api/v2/movie_details.json?movie_id=${id}`
+      );
+      const json = await response.json();
+      return json.data.movie;
+    },
+  },
+  Mutation: {
+    postTweet(_, { text, userId }) {
+      const newTweet = {
+        id: tweets.length + 1,
+        text: text,
+        userId: userId,
+      };
+      tweets.push(newTweet);
+      return newTweet;
+    },
+    deleteTweet(_, { tweetId }) {
+      const tweet = tweets.find((tweet) => tweet.id === tweetId);
+      if (!tweet) return false;
+      tweets = tweets.filter((tweet) => tweet.id !== tweetId);
+      return true;
+    },
+  },
+  User: {
+    fullName({ firstName, lastName }) {
+      return `${firstName} ${lastName}`;
+    },
+  },
+  Tweet: {
+    author({ userId }) {
+      const tweetAuthor = users.find((user) => user.id === userId);
+      if (!tweetAuthor) return null;
+      return tweetAuthor;
+    },
+  },
+};
 
-// restAPI라면?
-// GET /allTweets (query)
-// POST PUT DELETE /tweet/:tweetId (mutation)
+const server = new ApolloServer({
+  typeDefs,
+  resolvers,
+  csrfPrevention: true,
+});
 
-const server = new ApolloServer({ typeDefs });
 server.listen().then(({ url }) => {
-  console.log(`running on the ${url}`);
+  console.log(`🚀 Server ready at ${url}`);
 });
