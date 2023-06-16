@@ -38,11 +38,9 @@ API는 컴퓨터나 컴퓨터 프로그램 사이의 연결이다. 즉, 프로�
 
 **_인터페이스_**
 
-무엇인가와(TV) 무언가를(리모컨) 이용해서 상호작용하는 방식이다. 리모컨을 이용해서 TV를 컨트롤하고, TV와 상호작용할 수 있는 것이다. ex1) REST API는 특정 URL로 요청을 통해 이루어진다.
+무엇인가와(TV) 무언가를(리모컨) 이용해서 상호작용하는 방식이다. 리모컨을 이용해서 TV를 컨트롤하고, TV와 상호작용할 수 있는 것이다. 
 
-ex2) Twitter API
-
-https://developer.twitter.com/en/docs/api-reference-index
+ex1) REST API는 특정 URL로 요청을 통해 이루어진다.
 
 **_HTTP 요청 메서드_**
 
@@ -52,31 +50,17 @@ https://developer.mozilla.org/ko/docs/Web/HTTP/Methods
 
 **_자주 사용하는 HTTP 요청 메서드들_**
 
-GET: GET 메서드는 오직 데이터를 받기만 합니다.
+GET: GET 메서드는 오직 데이터를 받기만 합니다.
 
 POST: POST 메서드는 리소스를 생성할 때 쓰입니다.
 
-PUT: PUT 메서드는 리소스를 업데이트할 때 쓰입니다.
+PUT: PUT 메서드는 리소스를 업데이트할 때 쓰입니다.
 
 DELETE: DELETE 메서드는 특정 리소스를 삭제합니다.
 
-**_5분만에 제대로 설계하는 ⭐️ REST API_**
+**_5분만에 제대로 설계하는 REST API_**
 
 https://youtu.be/4DxHX95Lq2U
-
-1. URL에서는 가급적 동사를 사용하지 않는다.
-
-(동사보다는 HTTP request method를 이용)
-
-/seeMovies (GET) -> /movies (GET)
-
-/createMovie (POST) -> /movies (POST)
-
-2. 검색이나 필터를 처리할 때는 query parameter를 이용하는 것이 좋다.
-
-/getTopRatedMovies -> /movies?min_rating=9
-
-/findMoviesFromThisYear -> /movies?release_date=2022
 
 ## WELCOME TO GRAPHQL
 
@@ -114,55 +98,42 @@ https://www.apollographql.com/docs/apollo-server/
 **_Apollo Server시작하기_**
 
 npm install apollo-server graphql
-
 npm install nodemon -D
 
+```
 const server = new ApolloServer({
+  typeDefs,
 
-typeDefs,
+  resolvers,
 
-resolvers,
-
-csrfPrevention: true,
-
+  csrfPrevention: true,
 });
 
 server.listen().then(({ url }) => {
-
-console.log(`🚀 Server ready at ${url}`);
-
+  console.log(`🚀 Server ready at ${url}`);
 });
+```
 
 **_Define your GraphQL schema (GraphQL 스키마 정의 : schema | modules | typeDefs)_**
 
 모든 GraphQL 서버(Apollo Server 포함)는 스키마를 사용하여 클라이언트가 쿼리할 수 있는 데이터 구조를 정의합니다. (스키마는 type definitions의 모음입니다.)
 
 ```
-
 // "shape" of the data
-
 // graphql에게 모든 data의 shape에 대해 설명
-
 // Query root type must be provided. = GET Url
 
 const typeDefs = gql`
+  type Book {
+    title: String
 
-type Book {
+    author: String
+  }
 
-title: String
-
-author: String
-
-}
-
-type Query {
-
-books: [Book]
-
-}
-
+  type Query {
+    books: [Book]
+  }
 `;
-
 ```
 
 https://www.apollographql.com/docs/apollo-server/getting-started/#step-3-define-your-graphql-schema
@@ -177,41 +148,22 @@ https://graphql.org/learn/schema/#scalar-types
 GraphQL에 대한 대부분은 데이터 fetching이지만, 서버 측 데이터를 수정할 수 있는 방법이 필요합니다. 서버 측 데이터를 수정하는 모든 작업은 mutation을 통해 보내야 한다는 규칙을 설정하는 것이 유용합니다.
 
 ```
-
 // SDL
-
 type Review {
-
-start: Int
-
-commentray: String
-
+  start: Int
+  commentray: String
 }
-
-
-
 type Mutation {
-
-createReview(episode: String, review: String): Review
-
+  createReview(episode: String, review: String): Review
 }
-
-
 
 // apollo server
-
 mutation CreateReview($ep: Episode!, $review: ReviewInput!) {
-
-createReview(episode: $ep, review: $review) {
-
-stars
-
-commentary
-
+  createReview(episode: $ep, review: $review) {
+    stars
+    commentary
+  }
 }
-
-}
-
 ```
 
 https://graphql.org/learn/queries/#mutations
@@ -221,15 +173,10 @@ https://graphql.org/learn/queries/#mutations
 아래 Character에 name에 String 타입을 사용하고 느낌표 !를 추가하여 Non-Null로 표시합니다. Non-Null로 표시하게 되면 서버가 항상 이 필드에 대해 null이 아닌 값을 반환할 것으로 예상합니다. 그래서 null 값을 얻게 되면 클라이언트에게 문제가 있음을 알립니다.
 
 ```
-
 type Character {
-
-name: String!
-
-appearsIn: [Episode]!
-
+    name: String!
+    appearsIn: [Episode]!
 }
-
 ```
 
 https://graphql.org/learn/schema/#lists-and-non-null
@@ -253,21 +200,11 @@ resolver 함수는 데이터베이스에 액세스한 다음 데이터를 반환
 [graphQL 명세] user가 arguments를 보낼 때 항상 resolver function의 두 번째 인수가 된다.
 
 ```
-
 Query: {
-
-human(root, args, context, info) {
-
-return context.db.loadHumanByID(args.id).then(
-
-userData => new Human(userData)
-
-)
-
+    human(root, args, context, info) {
+        return context.db.loadHumanByID(args.id).then(userData => new Human(userData))
+    }
 }
-
-}
-
 ```
 
 https://graphql.org/learn/execution/#root-fields-resolvers
@@ -277,17 +214,11 @@ https://graphql.org/learn/execution/#root-fields-resolvers
 Resolver 함수에는 parent(root or source), args, context, info 의 네 가지 인수가 순서대로 전달됩니다.
 
 ```
-
 User: {
-
-fullName: (parent, args, context, info) => {
-
-return "hello";
-
+    fullName: (parent, args, context, info) => {
+        return "hello";
+    },
 },
-
-},
-
 ```
 
 https://www.apollographql.com/docs/apollo-server/data/resolvers/#resolver-arguments
@@ -297,38 +228,16 @@ https://www.apollographql.com/docs/apollo-server/data/resolvers/#resolver-argume
 type, field 또는 argument에 대한 설명을 제공합니다. 독스트링은 Apollo Studio Explorer를 포함한 많은 일반적인 GraphQL 도구에 자동으로 나타납니다.
 
 ```
-
-"""
-
-User에 대해 설명
-
-"""
-
-type User {
-
-"""
-
-firstName에 대해 설명
-
-"""
-
-firstName: String!
-
-
-
-age(
-
-"""
-
-반드시 숫자여야 합니다.
-
-"""
-
-arg: Int
-
-)
-
-}
+  type Mutation {
+    """
+    posting a new tweet with text and userId
+    """
+    postTweet(text: String!, userId: ID!): Tweet
+    """
+    Deletes a Tweet if found, else returns false
+    """
+    deleteTweet(tweetId: ID!): Boolean!
+  }
 
 ```
 
